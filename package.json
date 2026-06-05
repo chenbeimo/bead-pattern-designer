@@ -1,0 +1,22 @@
+{
+  "name": "bead-pattern-designer",
+  "version": "1.0.0",
+  "description": "拼豆图纸生成器 — Bead Pattern Designer",
+  "type": "module",
+  "scripts": {
+    "dev": "python serve.py",
+    "dev:win": "python serve.py",
+    "build": "echo 'Build step TODO: add esbuild/rollup'"
+  },
+  "keywords": [
+    "beads",
+    "perler",
+    "pattern",
+    "pixel-art"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vite": "^8.0.16"
+  }
+}

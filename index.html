@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>拼豆图纸生成器 — Bead Pattern Designer</title>
+  <link rel="stylesheet" href="/src/styles/main.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部工具栏 -->
+    <header class="toolbar">
+      <h1 class="toolbar__title">🧩 拼豆图纸</h1>
+      <div class="toolbar__actions">
+        <label class="toolbar__btn" id="uploadBtn">
+          📁 上传图片
+          <input type="file" id="fileInput" accept="image/*" hidden />
+        </label>
+        <button class="toolbar__btn" id="exportPng" disabled>📥 导出 PNG</button>
+        <button class="toolbar__btn" id="exportPdf" disabled>📄 导出 PDF</button>
+      </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="workspace">
+      <!-- 左侧/上方：设置面板 -->
+      <aside class="settings" id="settingsPanel">
+        <section class="settings__section">
+          <h3>品牌选择</h3>
+          <select id="brandSelect" class="settings__select">
+            <option value="perler">Perler</option>
+            <option value="hama">Hama</option>
+            <option value="artkal">Artkal</option>
+          </select>
+        </section>
+
+        <section class="settings__section">
+          <h3>网格宽度</h3>
+          <div class="settings__range-group">
+            <input type="range" id="gridWidthSlider" min="10" max="200" value="50" />
+            <input type="number" id="gridWidthInput" min="10" max="200" value="50" class="settings__num-input" />
+          </div>
+          <p class="settings__hint" id="gridInfo">上传图片后显示尺寸信息</p>
+        </section>
+
+        <section class="settings__section">
+          <h3>显示选项</h3>
+          <label class="settings__checkbox">
+            <input type="checkbox" id="showLabels" checked />
+            显示色号编号
+          </label>
+          <label class="settings__checkbox">
+            <input type="checkbox" id="showGrid" checked />
+            显示网格线
+          </label>
+        </section>
+
+        <section class="settings__section">
+          <h3>缩放</h3>
+          <div class="settings__range-group">
+            <span>🔍−</span>
+            <input type="range" id="zoomSlider" min="5" max="60" value="20" />
+            <span>🔍+</span>
+          </div>
+          <p class="settings__hint">格子大小: <span id="cellSizeLabel">20</span>px</p>
+        </section>
+
+        <!-- 颜色图层面板 -->
+        <section class="settings__section layers-section">
+          <h3>颜色图层</h3>
+          <div class="layers-controls">
+            <button class="layers-btn" id="showAllLayers">全部显示</button>
+          </div>
+          <div class="layers-list" id="layersList">
+            <p class="layers-placeholder">上传图片并生成图纸后显示颜色列表</p>
+          </div>
+        </section>
+
+        <!-- 统计清单 -->
+        <section class="settings__section" id="statsSection" style="display:none">
+          <h3>用量统计</h3>
+          <div class="stats-total" id="statsTotal"></div>
+          <table class="stats-table" id="statsTable">
+            <thead>
+              <tr><th>色号</th><th>颜色</th><th>数量</th></tr>
+            </thead>
+            <tbody id="statsBody"></tbody>
+          </table>
+        </section>
+      </aside>
+
+      <!-- 右侧/下方：图纸画布 -->
+      <div class="canvas-container" id="canvasContainer">
+        <div class="canvas-wrapper" id="canvasWrapper">
+          <canvas id="mainCanvas"></canvas>
+        </div>
+        <div class="canvas-placeholder" id="canvasPlaceholder">
+          <p>📷 拖拽图片到此处，或点击「上传图片」开始</p>
+          <p class="canvas-placeholder__hint">支持 JPG / PNG / GIF，最大 5MB</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
