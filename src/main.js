@@ -4,9 +4,10 @@
 
 import { initToolbar } from './ui/toolbar.js';
 import { initLayerPanel } from './ui/layer-panel.js';
+import { initRouter } from './ui/router.js';
 
-// 初始化
 document.addEventListener('DOMContentLoaded', () => {
+  initRouter();
   initToolbar();
   initLayerPanel();
 });

@@ -2,104 +2,192 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>拼豆图纸生成器 — Bead Pattern Designer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>拼豆图纸生成器</title>
   <link rel="stylesheet" href="src/styles/main.css" />
 </head>
 <body>
   <div id="app">
-    <!-- 顶部工具栏 -->
-    <header class="toolbar">
-      <h1 class="toolbar__title">🧩 拼豆图纸</h1>
-      <div class="toolbar__actions">
-        <label class="toolbar__btn" id="uploadBtn">
-          📁 上传图片
-          <input type="file" id="fileInput" accept="image/*" hidden />
-        </label>
-        <button class="toolbar__btn" id="exportPng" disabled>📥 导出 PNG</button>
-        <button class="toolbar__btn" id="exportPdf" disabled>📄 导出 PDF</button>
+
+    <!-- ===== 首页 ===== -->
+    <div class="page active" id="pageHome">
+      <div class="home-hero">
+        <div class="home-hero__icon">🧩</div>
+        <h1 class="home-hero__title">拼豆图纸生成器</h1>
+        <p class="home-hero__subtitle">将你的照片变成精美的拼豆图纸</p>
       </div>
-    </header>
 
-    <!-- 主内容区 -->
-    <main class="workspace">
-      <!-- 左侧/上方：设置面板 -->
-      <aside class="settings" id="settingsPanel">
-        <section class="settings__section">
-          <h3>品牌选择</h3>
-          <select id="brandSelect" class="settings__select">
-            <option value="perler">Perler</option>
-            <option value="hama">Hama</option>
-            <option value="artkal">Artkal</option>
-          </select>
-        </section>
+      <div class="home-actions">
+        <div class="action-card" id="actionUpload">
+          <div class="action-card__icon action-card__icon--green">📷</div>
+          <div class="action-card__label">上传照片</div>
+          <div class="action-card__desc">从相册选择图片</div>
+        </div>
+        <div class="action-card" id="actionCreate">
+          <div class="action-card__icon action-card__icon--pink">✨</div>
+          <div class="action-card__label">开始创作</div>
+          <div class="action-card__desc">自定义设置</div>
+        </div>
+      </div>
 
-        <section class="settings__section">
-          <h3>网格宽度</h3>
-          <div class="settings__range-group">
-            <input type="range" id="gridWidthSlider" min="10" max="200" value="50" />
-            <input type="number" id="gridWidthInput" min="10" max="200" value="50" class="settings__num-input" />
-          </div>
-          <p class="settings__hint" id="gridInfo">上传图片后显示尺寸信息</p>
-        </section>
+      <div class="home-section">
+        <div class="home-section__title">最近作品</div>
+        <div class="recent-list" id="recentList">
+          <div class="recent-item">+</div>
+          <div class="recent-item">+</div>
+          <div class="recent-item">+</div>
+        </div>
+      </div>
+    </div>
 
-        <section class="settings__section">
-          <h3>显示选项</h3>
-          <label class="settings__checkbox">
-            <input type="checkbox" id="showLabels" checked />
-            显示色号编号
-          </label>
-          <label class="settings__checkbox">
-            <input type="checkbox" id="showGrid" checked />
-            显示网格线
-          </label>
-        </section>
+    <!-- ===== 编辑页 ===== -->
+    <div class="page edit-page" id="pageEdit">
+      <header class="header">
+        <button type="button" class="header__back" id="btnBack">←</button>
+        <span class="header__title">编辑图纸</span>
+        <div class="header__spacer"></div>
+      </header>
 
-        <section class="settings__section">
-          <h3>缩放</h3>
-          <div class="settings__range-group">
-            <span>🔍−</span>
-            <input type="range" id="zoomSlider" min="5" max="60" value="20" />
-            <span>🔍+</span>
-          </div>
-          <p class="settings__hint">格子大小: <span id="cellSizeLabel">20</span>px</p>
-        </section>
-
-        <!-- 颜色图层面板 -->
-        <section class="settings__section layers-section">
-          <h3>颜色图层</h3>
-          <div class="layers-controls">
-            <button class="layers-btn" id="showAllLayers">全部显示</button>
-          </div>
-          <div class="layers-list" id="layersList">
-            <p class="layers-placeholder">上传图片并生成图纸后显示颜色列表</p>
-          </div>
-        </section>
-
-        <!-- 统计清单 -->
-        <section class="settings__section" id="statsSection" style="display:none">
-          <h3>用量统计</h3>
-          <div class="stats-total" id="statsTotal"></div>
-          <table class="stats-table" id="statsTable">
-            <thead>
-              <tr><th>色号</th><th>颜色</th><th>数量</th></tr>
-            </thead>
-            <tbody id="statsBody"></tbody>
-          </table>
-        </section>
-      </aside>
-
-      <!-- 右侧/下方：图纸画布 -->
-      <div class="canvas-container" id="canvasContainer">
-        <div class="canvas-wrapper" id="canvasWrapper">
+      <!-- 图纸卡片 -->
+      <div class="canvas-card" id="canvasCard">
+        <div class="canvas-card__inner" id="canvasContainer">
           <canvas id="mainCanvas"></canvas>
+          <div class="canvas-card__placeholder" id="canvasPlaceholder">
+            <div class="canvas-card__placeholder-icon">🖼️</div>
+            <div class="canvas-card__placeholder-text">拖拽图片到此处</div>
+            <div class="canvas-card__placeholder-hint">支持 JPG / PNG / GIF，最大 5MB</div>
+          </div>
         </div>
-        <div class="canvas-placeholder" id="canvasPlaceholder">
-          <p>📷 拖拽图片到此处，或点击「上传图片」开始</p>
-          <p class="canvas-placeholder__hint">支持 JPG / PNG / GIF，最大 5MB</p>
+        <div class="canvas-card__info hidden" id="canvasInfo">
+          <span id="gridInfoLeft">50 × 70 格</span>
+          <span id="gridInfoRight">共 3500 颗</span>
         </div>
       </div>
-    </main>
+
+      <!-- 设置列（桌面端右侧） -->
+      <div class="settings-col">
+        <!-- 设置卡片 -->
+        <div class="settings-card">
+          <div class="settings-card__title">参数设置</div>
+          <div class="settings-row">
+            <span class="settings-row__label">品牌</span>
+            <div class="settings-row__control">
+              <select id="brandSelect" class="select-pill" title="选择品牌">
+                <option value="perler">Perler</option>
+                <option value="hama">Hama</option>
+                <option value="artkal">Artkal</option>
+              </select>
+            </div>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row__label">网格宽度</span>
+            <div class="settings-row__control">
+              <div class="range-group">
+                <input type="range" id="gridWidthSlider" min="10" max="200" value="50" aria-label="网格宽度" />
+                <span class="range-val" id="gridWidthVal">50</span>
+              </div>
+            </div>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row__label">显示编号</span>
+            <div class="settings-row__control">
+              <label class="toggle">
+                <input type="checkbox" id="showLabels" checked aria-label="显示编号" />
+                <div class="toggle__track"></div>
+                <div class="toggle__thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row__label">显示网格</span>
+            <div class="settings-row__control">
+              <label class="toggle">
+                <input type="checkbox" id="showGrid" checked aria-label="显示网格" />
+                <div class="toggle__track"></div>
+                <div class="toggle__thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row__label">缩放</span>
+            <div class="settings-row__control">
+              <div class="range-group">
+                <input type="range" id="zoomSlider" min="5" max="60" value="20" aria-label="缩放" />
+                <span class="range-val" id="cellSizeLabel">20</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 颜色图层卡片 -->
+        <div class="layers-card">
+          <div class="layers-card__header">
+            <span class="layers-card__title">🎨 颜色图层</span>
+            <button type="button" class="layers-card__btn" id="showAllLayers">全部显示</button>
+          </div>
+          <div class="layers-grid" id="layersList">
+            <p class="layers-placeholder">生成图纸后显示颜色列表</p>
+          </div>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-card hidden" id="statsSection">
+          <div class="stats-card__header">
+            <div class="stats-card__title">📊 用量统计</div>
+            <div class="stats-card__total" id="statsTotal"></div>
+          </div>
+          <div class="stats-list" id="statsBody"></div>
+        </div>
+
+        <!-- 导出按钮 -->
+        <div class="export-bar">
+          <button type="button" class="btn-export btn-export--png" id="exportPng" disabled>📥 导出 PNG</button>
+          <button type="button" class="btn-export btn-export--pdf" id="exportPdf" disabled>📄 导出 PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 收藏页（占位） ===== -->
+    <div class="page" id="pageFavorites">
+      <div class="empty-state">
+        <div class="empty-state__icon">⭐</div>
+        <div class="empty-state__text">收藏的图纸会出现在这里</div>
+      </div>
+    </div>
+
+    <!-- ===== 我的页（占位） ===== -->
+    <div class="page" id="pageProfile">
+      <div class="empty-state">
+        <div class="empty-state__icon">👤</div>
+        <div class="empty-state__text">个人中心（开发中）</div>
+      </div>
+    </div>
+
+    <!-- 底部 Tab -->
+    <nav class="tab-bar">
+      <button class="tab-item active" data-page="pageHome">
+        <span class="tab-item__icon">🏠</span>
+        <span class="tab-item__label">首页</span>
+      </button>
+      <button class="tab-item" data-page="pageFavorites">
+        <span class="tab-item__icon">⭐</span>
+        <span class="tab-item__label">收藏</span>
+      </button>
+      <button class="tab-item" data-page="pageEdit">
+        <span class="tab-item__icon">🎨</span>
+        <span class="tab-item__label">自制</span>
+      </button>
+      <button class="tab-item" data-page="pageProfile">
+        <span class="tab-item__icon">👤</span>
+        <span class="tab-item__label">我的</span>
+      </button>
+    </nav>
+
+    <!-- FAB 悬浮上传按钮 -->
+    <button type="button" class="fab" id="fabUpload">📷</button>
+
+    <!-- 隐藏的文件输入 -->
+    <input type="file" id="fileInput" accept="image/*" hidden />
   </div>
 
   <script type="module" src="src/main.js"></script>

@@ -6,6 +6,7 @@ import { getState, setState } from '../core/app-state.js';
 import { loadImageFromFile, processImage } from '../core/grid-processor.js';
 import { renderGrid } from '../core/grid-renderer.js';
 import { exportPng, exportPdf } from './exporter.js';
+import { navigateTo } from './router.js';
 
 /**
  * 初始化所有 UI 事件
@@ -14,8 +15,10 @@ export function initToolbar() {
   const fileInput = document.getElementById('fileInput');
   const brandSelect = document.getElementById('brandSelect');
   const gridWidthSlider = document.getElementById('gridWidthSlider');
-  const gridWidthInput = document.getElementById('gridWidthInput');
-  const gridInfo = document.getElementById('gridInfo');
+  const gridWidthVal = document.getElementById('gridWidthVal');
+  const gridInfoLeft = document.getElementById('gridInfoLeft');
+  const gridInfoRight = document.getElementById('gridInfoRight');
+  const canvasInfo = document.getElementById('canvasInfo');
   const showLabelsCheckbox = document.getElementById('showLabels');
   const showGridCheckbox = document.getElementById('showGrid');
   const zoomSlider = document.getElementById('zoomSlider');
@@ -24,7 +27,7 @@ export function initToolbar() {
   const exportPdfBtn = document.getElementById('exportPdf');
   const canvas = document.getElementById('mainCanvas');
   const placeholder = document.getElementById('canvasPlaceholder');
-  const canvasContainer = document.getElementById('canvasContainer');
+  const canvasCard = document.getElementById('canvasCard');
 
   // 文件上传
   fileInput.addEventListener('change', (e) => {
@@ -32,17 +35,20 @@ export function initToolbar() {
     if (file) handleFile(file);
   });
 
-  // 拖拽上传
-  canvasContainer.addEventListener('dragover', (e) => {
+  // 拖拽上传（整个编辑页面）
+  const editPage = document.getElementById('pageEdit');
+  editPage.addEventListener('dragover', (e) => {
     e.preventDefault();
-    canvasContainer.classList.add('drag-over');
+    canvasCard.classList.add('drag-over');
   });
-  canvasContainer.addEventListener('dragleave', () => {
-    canvasContainer.classList.remove('drag-over');
+  editPage.addEventListener('dragleave', (e) => {
+    if (!editPage.contains(e.relatedTarget)) {
+      canvasCard.classList.remove('drag-over');
+    }
   });
-  canvasContainer.addEventListener('drop', (e) => {
+  editPage.addEventListener('drop', (e) => {
     e.preventDefault();
-    canvasContainer.classList.remove('drag-over');
+    canvasCard.classList.remove('drag-over');
     const file = e.dataTransfer.files[0];
     if (file) handleFile(file);
   });
@@ -61,12 +67,7 @@ export function initToolbar() {
   let debounceTimer = null;
   gridWidthSlider.addEventListener('input', (e) => {
     const val = parseInt(e.target.value);
-    gridWidthInput.value = val;
-    scheduleReprocess(val);
-  });
-  gridWidthInput.addEventListener('input', (e) => {
-    const val = parseInt(e.target.value);
-    gridWidthSlider.value = val;
+    gridWidthVal.textContent = val;
     scheduleReprocess(val);
   });
 
@@ -110,7 +111,7 @@ export function initToolbar() {
   if (savedWidth) {
     const w = parseInt(savedWidth);
     gridWidthSlider.value = w;
-    gridWidthInput.value = w;
+    gridWidthVal.textContent = w;
   }
   if (savedBrand) {
     brandSelect.value = savedBrand;
@@ -134,7 +135,6 @@ export function initToolbar() {
   }
 
   function showToast(message) {
-    // 移除旧的 toast
     const old = document.querySelector('.toast');
     if (old) old.remove();
 
@@ -142,9 +142,7 @@ export function initToolbar() {
     toast.className = 'toast';
     toast.textContent = message;
     document.body.appendChild(toast);
-    // 触发动画
     requestAnimationFrame(() => toast.classList.add('toast--show'));
-    // 3秒后移除
     setTimeout(() => {
       toast.classList.remove('toast--show');
       setTimeout(() => toast.remove(), 300);
@@ -153,28 +151,29 @@ export function initToolbar() {
 
   async function handleFile(file) {
     if (!validateFile(file)) {
-      // 清空 file input 以便重新选择同一文件
       fileInput.value = '';
       return;
     }
 
     try {
       const img = await loadImageFromFile(file);
-      const width = parseInt(gridWidthInput.value) || 50;
+      const width = parseInt(gridWidthSlider.value) || 50;
       const brand = brandSelect.value;
 
       processImage(img, width, brand);
       renderGrid(canvas);
 
       placeholder.classList.add('hidden');
+      canvasInfo.classList.remove('hidden');
       updateExportButtons(true);
       updateGridInfo();
 
-      // 保存缓存
       localStorage.setItem('bead-gridWidth', width);
       localStorage.setItem('bead-brand', brand);
-      // 清空 file input 以便重新选择同一文件
       fileInput.value = '';
+
+      // 自动跳转到编辑页
+      navigateTo('pageEdit');
     } catch (err) {
       console.error('图片加载失败:', err);
       showToast('图片加载失败，请重试');
@@ -184,7 +183,8 @@ export function initToolbar() {
   function updateGridInfo() {
     const state = getState();
     if (state.isReady) {
-      gridInfo.textContent = `${state.gridWidth} × ${state.gridHeight} 格 (${state.gridWidth * state.gridHeight} 颗)`;
+      gridInfoLeft.textContent = `${state.gridWidth} × ${state.gridHeight} 格`;
+      gridInfoRight.textContent = `共 ${state.gridWidth * state.gridHeight} 颗`;
     }
   }
 

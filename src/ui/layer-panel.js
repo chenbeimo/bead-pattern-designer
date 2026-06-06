@@ -22,7 +22,7 @@ export function initLayerPanel() {
     updateLayerHighlights();
   });
 
-  // 订阅状态变化，重新渲染图层列表
+  // 订阅状态变化
   import('../core/app-state.js').then(({ subscribe }) => {
     subscribe((state) => {
       if (state.isReady) {
@@ -34,50 +34,52 @@ export function initLayerPanel() {
 }
 
 /**
- * 渲染图层列表
+ * 渲染图层列表（新版 chip 卡片）
  */
 function renderLayersList(state, container, canvas) {
   const { layers, activeColors, singleLayerMode } = state;
 
   if (layers.length === 0) {
-    container.innerHTML = '<p class="layers-placeholder">上传图片并生成图纸后显示颜色列表</p>';
+    container.innerHTML = '<p class="layers-placeholder">生成图纸后显示颜色列表</p>';
     return;
   }
 
   container.innerHTML = '';
 
   for (const layer of layers) {
-    const item = document.createElement('div');
-    item.className = 'layer-item';
-    item.dataset.beadId = layer.beadId;
+    const chip = document.createElement('div');
+    chip.className = 'layer-chip';
+    chip.dataset.beadId = layer.beadId;
 
-    // 高亮/淡化逻辑
     if (singleLayerMode) {
-      item.classList.add(activeColors.has(layer.beadId) ? 'active' : 'dimmed');
+      chip.classList.add(activeColors.has(layer.beadId) ? 'active' : 'dimmed');
     }
 
-    item.innerHTML = `
-      <span class="layer-swatch" style="background:${layer.hex}"></span>
-      <span class="layer-label">${layer.beadId} ${layer.name}</span>
-      <span class="layer-count">${layer.count}颗</span>
+    chip.innerHTML = `
+      <div class="layer-chip__swatch" style="background:${layer.hex}"></div>
+      <div class="layer-chip__info">
+        <div class="layer-chip__name">${layer.beadId} ${layer.name}</div>
+        <div class="layer-chip__count">${layer.count} 颗</div>
+      </div>
+      <div class="layer-chip__check">✓</div>
     `;
 
-    item.addEventListener('click', () => {
+    chip.addEventListener('click', () => {
       toggleColorLayer(layer.beadId);
       renderGrid(canvas);
       updateLayerHighlights();
     });
 
-    container.appendChild(item);
+    container.appendChild(chip);
   }
 }
 
 /**
- * 更新图层列表高亮状态
+ * 更新图层高亮状态
  */
 function updateLayerHighlights() {
   const state = getState();
-  const items = document.querySelectorAll('.layer-item');
+  const items = document.querySelectorAll('.layer-chip');
   items.forEach((item) => {
     const beadId = item.dataset.beadId;
     item.classList.remove('active', 'dimmed');
@@ -88,26 +90,27 @@ function updateLayerHighlights() {
 }
 
 /**
- * 渲染统计清单
+ * 渲染统计清单（新版列表）
  */
 function renderStats(state, section, body, totalEl) {
   const { layers, cells } = state;
   if (layers.length === 0) {
-    section.style.display = 'none';
+    section.classList.add('hidden');
     return;
   }
 
-  section.style.display = '';
-  totalEl.textContent = `总计: ${cells.length} 颗, ${layers.length} 种颜色`;
+  section.classList.remove('hidden');
+  totalEl.textContent = `总计 ${cells.length} 颗 · ${layers.length} 种颜色`;
 
   body.innerHTML = '';
   for (const layer of layers) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${layer.beadId}</td>
-      <td><span class="color-dot" style="background:${layer.hex}"></span>${layer.name}</td>
-      <td>${layer.count}</td>
+    const row = document.createElement('div');
+    row.className = 'stats-row';
+    row.innerHTML = `
+      <span class="stats-row__dot" style="background:${layer.hex}"></span>
+      <span class="stats-row__name">${layer.beadId} ${layer.name}</span>
+      <span class="stats-row__count">${layer.count}</span>
     `;
-    body.appendChild(tr);
+    body.appendChild(row);
   }
 }
