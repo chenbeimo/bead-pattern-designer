@@ -1,78 +1,66 @@
 /**
- * 页面路由：Tab 导航 + 页面切换
+ * 路由：Tab 导航 + 页面切换
  */
+import { getState, setState } from '../core/app-state.js';
 
-const pages = {
-  pageHome: document.getElementById('pageHome'),
-  pageEdit: document.getElementById('pageEdit'),
-  pageFavorites: document.getElementById('pageFavorites'),
-  pageProfile: document.getElementById('pageProfile'),
-};
+const TAB_PAGES = { home: 'pageHome', favorites: 'pageFavorites', custom: 'pageCustom', settings: 'pageSettings' };
+const FULL_PAGES = ['pageEditor', 'pageColorPicker'];
 
-let currentPage = 'pageHome';
+let previousTab = 'home';
 
-/**
- * 初始化路由
- */
 export function initRouter() {
   const tabItems = document.querySelectorAll('.tab-item');
-  const btnBack = document.getElementById('btnBack');
-  const actionUpload = document.getElementById('actionUpload');
-  const actionCreate = document.getElementById('actionCreate');
-  const fabUpload = document.getElementById('fabUpload');
 
-  // Tab 切换
   tabItems.forEach((tab) => {
     tab.addEventListener('click', () => {
-      const target = tab.dataset.page;
-      if (target) navigateTo(target);
+      const target = tab.dataset.tab;
+      if (target) switchTab(target);
     });
   });
 
-  // 返回按钮
-  btnBack.addEventListener('click', () => navigateTo('pageHome'));
-
-  // 首页操作卡片
-  actionUpload.addEventListener('click', () => {
-    navigateTo('pageEdit');
-    // 触发文件选择
-    setTimeout(() => document.getElementById('fileInput').click(), 200);
-  });
-
-  actionCreate.addEventListener('click', () => {
-    navigateTo('pageEdit');
-  });
-
-  // FAB 按钮
-  fabUpload.addEventListener('click', () => {
+  // 首页入口卡片
+  document.getElementById('actionUpload').addEventListener('click', () => {
     document.getElementById('fileInput').click();
   });
+  document.getElementById('actionCreate').addEventListener('click', () => {
+    switchTab('custom');
+    setTimeout(() => document.getElementById('canvasSizeModal').classList.remove('hidden'), 150);
+  });
 }
 
-/**
- * 导航到指定页面
- */
-export function navigateTo(pageId) {
-  if (!pages[pageId]) return;
-  currentPage = pageId;
+export function switchTab(tabName) {
+  if (!TAB_PAGES[tabName]) return;
+  previousTab = getState().currentTab;
+  setState({ currentTab: tabName });
 
-  // 切换页面可见性
-  Object.values(pages).forEach((p) => p.classList.remove('active'));
-  pages[pageId].classList.add('active');
+  // 隐藏全屏页面
+  FULL_PAGES.forEach((id) => document.getElementById(id).classList.remove('active'));
 
-  // 更新 Tab 高亮
-  document.querySelectorAll('.tab-item').forEach((tab) => {
-    tab.classList.toggle('active', tab.dataset.page === pageId);
+  // 切换 Tab 页面
+  Object.values(TAB_PAGES).forEach((id) => document.getElementById(id).classList.remove('active'));
+  document.getElementById(TAB_PAGES[tabName]).classList.add('active');
+
+  // Tab 高亮
+  document.querySelectorAll('.tab-item').forEach((t) => {
+    t.classList.toggle('active', t.dataset.tab === tabName);
   });
 
-  // FAB 按钮：只在编辑页显示
-  const fab = document.getElementById('fabUpload');
-  fab.classList.toggle('visible', pageId === 'pageEdit');
+  // Tab 栏可见
+  document.querySelector('.tab-bar').classList.remove('hidden');
 }
 
-/**
- * 获取当前页面
- */
-export function getCurrentPage() {
-  return currentPage;
+export function showFullPage(pageId) {
+  // 隐藏所有 Tab 页
+  Object.values(TAB_PAGES).forEach((id) => document.getElementById(id).classList.remove('active'));
+  FULL_PAGES.forEach((id) => document.getElementById(id).classList.remove('active'));
+
+  document.getElementById(pageId).classList.add('active');
+  // Tab 栏保留但不高亮任何项
+  document.querySelectorAll('.tab-item').forEach((t) => t.classList.remove('active'));
 }
+
+export function goBack() {
+  switchTab(previousTab || 'home');
+}
+
+export function getPreviousTab() { return previousTab; }

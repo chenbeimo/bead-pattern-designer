@@ -9,70 +9,70 @@
 <body>
   <div id="app">
 
-    <!-- ===== 首页 ===== -->
+    <!-- ===== ① 首页 ===== -->
     <div class="page active" id="pageHome">
       <div class="home-hero">
         <div class="home-hero__icon">🧩</div>
         <h1 class="home-hero__title">拼豆图纸生成器</h1>
-        <p class="home-hero__subtitle">将你的照片变成精美的拼豆图纸</p>
+        <p class="home-hero__subtitle">将你的照片变成精美的拼豆艺术品</p>
       </div>
-
       <div class="home-actions">
         <div class="action-card" id="actionUpload">
           <div class="action-card__icon action-card__icon--green">📷</div>
-          <div class="action-card__label">上传照片</div>
-          <div class="action-card__desc">从相册选择图片</div>
+          <div class="action-card__label">从相册选择</div>
+          <div class="action-card__desc">上传照片生成图纸</div>
         </div>
         <div class="action-card" id="actionCreate">
           <div class="action-card__icon action-card__icon--pink">✨</div>
           <div class="action-card__label">开始创作</div>
-          <div class="action-card__desc">自定义设置</div>
+          <div class="action-card__desc">自定义空白画布</div>
         </div>
       </div>
-
       <div class="home-section">
         <div class="home-section__title">最近作品</div>
-        <div class="recent-list" id="recentList">
-          <div class="recent-item">+</div>
-          <div class="recent-item">+</div>
-          <div class="recent-item">+</div>
-        </div>
+        <div class="recent-list" id="recentList"></div>
       </div>
     </div>
 
-    <!-- ===== 编辑页 ===== -->
-    <div class="page edit-page" id="pageEdit">
-      <header class="header">
-        <button type="button" class="header__back" id="btnBack">←</button>
-        <span class="header__title">编辑图纸</span>
-        <div class="header__spacer"></div>
-      </header>
-
-      <!-- 图纸卡片 -->
-      <div class="canvas-card" id="canvasCard">
-        <div class="canvas-card__inner" id="canvasContainer">
-          <canvas id="mainCanvas"></canvas>
-          <div class="canvas-card__placeholder" id="canvasPlaceholder">
-            <div class="canvas-card__placeholder-icon">🖼️</div>
-            <div class="canvas-card__placeholder-text">拖拽图片到此处</div>
-            <div class="canvas-card__placeholder-hint">支持 JPG / PNG / GIF，最大 5MB</div>
-          </div>
-        </div>
-        <div class="canvas-card__info hidden" id="canvasInfo">
-          <span id="gridInfoLeft">50 × 70 格</span>
-          <span id="gridInfoRight">共 3500 颗</span>
-        </div>
+    <!-- ===== ② 收藏页 ===== -->
+    <div class="page" id="pageFavorites">
+      <div class="page-header">
+        <h2 class="page-header__title">💙 我的收藏</h2>
       </div>
+      <div class="project-list" id="favoritesList"></div>
+      <div class="empty-state" id="favoritesEmpty">
+        <div class="empty-state__icon">⭐</div>
+        <div class="empty-state__text">暂无收藏</div>
+        <div class="empty-state__hint">在作品列表中点击 ❤️ 收藏</div>
+      </div>
+    </div>
 
-      <!-- 设置列（桌面端右侧） -->
-      <div class="settings-col">
-        <!-- 设置卡片 -->
+    <!-- ===== ③ 自制页 ===== -->
+    <div class="page" id="pageCustom">
+      <div class="page-header">
+        <h2 class="page-header__title">🖌️ 自制图纸</h2>
+      </div>
+      <div class="project-list" id="customList"></div>
+      <div class="empty-state" id="customEmpty">
+        <div class="empty-state__icon">🎨</div>
+        <div class="empty-state__text">还没有自制图纸</div>
+        <div class="empty-state__hint">点击右下角 + 按钮开始创作</div>
+      </div>
+      <button type="button" class="fab visible" id="fabNewProject">+</button>
+    </div>
+
+    <!-- ===== ④ 设置页 ===== -->
+    <div class="page" id="pageSettings">
+      <div class="page-header">
+        <h2 class="page-header__title">⚙️ 设置</h2>
+      </div>
+      <div class="settings-list">
         <div class="settings-card">
-          <div class="settings-card__title">参数设置</div>
+          <div class="settings-card__title">基本设置</div>
           <div class="settings-row">
             <span class="settings-row__label">品牌</span>
             <div class="settings-row__control">
-              <select id="brandSelect" class="select-pill" title="选择品牌">
+              <select id="settingBrand" class="select-pill" title="选择品牌">
                 <option value="perler">Perler</option>
                 <option value="hama">Hama</option>
                 <option value="artkal">Artkal</option>
@@ -80,113 +80,168 @@
             </div>
           </div>
           <div class="settings-row">
-            <span class="settings-row__label">网格宽度</span>
+            <span class="settings-row__label">默认网格宽度</span>
             <div class="settings-row__control">
               <div class="range-group">
-                <input type="range" id="gridWidthSlider" min="10" max="200" value="50" aria-label="网格宽度" />
-                <span class="range-val" id="gridWidthVal">50</span>
+                <input type="range" id="settingDefaultWidth" min="10" max="200" value="50" aria-label="默认网格宽度" />
+                <span class="range-val" id="settingDefaultWidthVal">50</span>
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card__title">显示选项</div>
           <div class="settings-row">
-            <span class="settings-row__label">显示编号</span>
+            <span class="settings-row__label">默认显示编号</span>
             <div class="settings-row__control">
               <label class="toggle">
-                <input type="checkbox" id="showLabels" checked aria-label="显示编号" />
+                <input type="checkbox" id="settingShowLabels" checked aria-label="默认显示编号" />
                 <div class="toggle__track"></div>
                 <div class="toggle__thumb"></div>
               </label>
             </div>
           </div>
           <div class="settings-row">
-            <span class="settings-row__label">显示网格</span>
+            <span class="settings-row__label">默认显示网格</span>
             <div class="settings-row__control">
               <label class="toggle">
-                <input type="checkbox" id="showGrid" checked aria-label="显示网格" />
+                <input type="checkbox" id="settingShowGrid" checked aria-label="默认显示网格" />
                 <div class="toggle__track"></div>
                 <div class="toggle__thumb"></div>
               </label>
             </div>
           </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card__title">数据管理</div>
           <div class="settings-row">
-            <span class="settings-row__label">缩放</span>
+            <span class="settings-row__label">清空所有数据</span>
             <div class="settings-row__control">
-              <div class="range-group">
-                <input type="range" id="zoomSlider" min="5" max="60" value="20" aria-label="缩放" />
-                <span class="range-val" id="cellSizeLabel">20</span>
-              </div>
+              <button type="button" class="btn-danger" id="btnClearData">清空</button>
             </div>
           </div>
         </div>
 
-        <!-- 颜色图层卡片 -->
-        <div class="layers-card">
-          <div class="layers-card__header">
-            <span class="layers-card__title">🎨 颜色图层</span>
-            <button type="button" class="layers-card__btn" id="showAllLayers">全部显示</button>
+        <div class="settings-card">
+          <div class="settings-card__title">关于</div>
+          <div class="settings-row">
+            <span class="settings-row__label">版本</span>
+            <div class="settings-row__control"><span class="text-hint">v1.0.0</span></div>
           </div>
-          <div class="layers-grid" id="layersList">
-            <p class="layers-placeholder">生成图纸后显示颜色列表</p>
-          </div>
-        </div>
-
-        <!-- 统计卡片 -->
-        <div class="stats-card hidden" id="statsSection">
-          <div class="stats-card__header">
-            <div class="stats-card__title">📊 用量统计</div>
-            <div class="stats-card__total" id="statsTotal"></div>
-          </div>
-          <div class="stats-list" id="statsBody"></div>
-        </div>
-
-        <!-- 导出按钮 -->
-        <div class="export-bar">
-          <button type="button" class="btn-export btn-export--png" id="exportPng" disabled>📥 导出 PNG</button>
-          <button type="button" class="btn-export btn-export--pdf" id="exportPdf" disabled>📄 导出 PDF</button>
         </div>
       </div>
     </div>
 
-    <!-- ===== 收藏页（占位） ===== -->
-    <div class="page" id="pageFavorites">
-      <div class="empty-state">
-        <div class="empty-state__icon">⭐</div>
-        <div class="empty-state__text">收藏的图纸会出现在这里</div>
+    <!-- ===== ⑤ 编辑器页 ===== -->
+    <div class="page" id="pageEditor">
+      <header class="header">
+        <button type="button" class="header__back" id="editorBack">←</button>
+        <span class="header__title" id="editorTitle">我的拼豆图</span>
+        <div class="header__right" id="editorColorDisplay">
+          <span class="editor-color-dot" id="editorColorDot"></span>
+          <span class="editor-color-name" id="editorColorName">-</span>
+        </div>
+      </header>
+      <div class="editor-canvas-wrap" id="editorCanvasWrap">
+        <canvas id="editorCanvas"></canvas>
+      </div>
+      <div class="editor-toolbar">
+        <div class="editor-toolbar__left">
+          <button type="button" class="editor-btn" id="editorUndo" title="撤销">↩️</button>
+          <button type="button" class="editor-btn" id="editorRedo" title="重做">↪️</button>
+          <label class="editor-toggle-wrap">
+            <input type="checkbox" id="editorShowLabels" checked />
+            <span class="editor-toggle-label">编号</span>
+          </label>
+          <label class="editor-toggle-wrap">
+            <input type="checkbox" id="editorShowGrid" checked />
+            <span class="editor-toggle-label">网格</span>
+          </label>
+        </div>
+        <div class="editor-toolbar__right">
+          <button type="button" class="btn-action btn-action--color" id="btnPickColor">🎨 选色</button>
+          <button type="button" class="btn-action btn-action--save" id="btnSaveProject">💾 保存</button>
+        </div>
       </div>
     </div>
 
-    <!-- ===== 我的页（占位） ===== -->
-    <div class="page" id="pageProfile">
-      <div class="empty-state">
-        <div class="empty-state__icon">👤</div>
-        <div class="empty-state__text">个人中心（开发中）</div>
+    <!-- ===== ⑥ 颜色选择器页 ===== -->
+    <div class="page" id="pageColorPicker">
+      <header class="header">
+        <button type="button" class="header__back" id="colorPickerBack">←</button>
+        <span class="header__title">选择颜色</span>
+        <div class="header__spacer"></div>
+      </header>
+      <div class="colorpicker-hints">
+        <p>勾选你拥有的颜色，生成图纸时只会使用这些颜色</p>
+        <p class="colorpicker-hints--sub">🔒 基础色（绿色边框）默认选中且不可取消</p>
+      </div>
+      <div class="colorpicker-search">
+        <input type="text" id="colorSearch" placeholder="🔍 搜索颜色..." class="colorpicker-search__input" />
+      </div>
+      <div class="colorpicker-quick">
+        <button type="button" class="colorpicker-quick__btn" id="colorSelectAll">全选当前</button>
+        <button type="button" class="colorpicker-quick__btn" id="colorClearAll">清空</button>
+        <button type="button" class="colorpicker-quick__btn" id="colorBaseOnly">基础色</button>
+      </div>
+      <div class="colorpicker-tabs" id="colorGroupTabs"></div>
+      <div class="colorpicker-grid" id="colorPickerGrid"></div>
+      <div class="colorpicker-footer">
+        <button type="button" class="btn-action btn-action--save btn-action--full" id="colorPickerDone">确认选择</button>
+      </div>
+    </div>
+
+    <!-- ===== ⑦ 画布设置弹窗 ===== -->
+    <div class="modal-overlay hidden" id="canvasSizeModal">
+      <div class="modal-card">
+        <h3 class="modal-card__title">设置画布大小</h3>
+        <p class="modal-card__desc">选择自定义图纸的大小</p>
+        <div class="modal-field">
+          <label class="modal-field__label">宽度</label>
+          <div class="range-group">
+            <input type="range" id="modalWidth" min="5" max="200" value="37" aria-label="画布宽度" />
+            <span class="range-val" id="modalWidthVal">37</span>
+          </div>
+          <span class="modal-field__unit">颗豆子</span>
+        </div>
+        <div class="modal-field">
+          <label class="modal-field__label">高度</label>
+          <div class="range-group">
+            <input type="range" id="modalHeight" min="5" max="200" value="37" aria-label="画布高度" />
+            <span class="range-val" id="modalHeightVal">37</span>
+          </div>
+          <span class="modal-field__unit">颗豆子</span>
+        </div>
+        <div class="modal-total" id="modalTotal">共 1369 颗豆子</div>
+        <div class="modal-actions">
+          <button type="button" class="btn-modal btn-modal--cancel" id="modalCancel">取消</button>
+          <button type="button" class="btn-modal btn-modal--confirm" id="modalConfirm">开始创作</button>
+        </div>
       </div>
     </div>
 
     <!-- 底部 Tab -->
     <nav class="tab-bar">
-      <button class="tab-item active" data-page="pageHome">
+      <button type="button" class="tab-item active" data-tab="home">
         <span class="tab-item__icon">🏠</span>
         <span class="tab-item__label">首页</span>
       </button>
-      <button class="tab-item" data-page="pageFavorites">
-        <span class="tab-item__icon">⭐</span>
+      <button type="button" class="tab-item" data-tab="favorites">
+        <span class="tab-item__icon">💙</span>
         <span class="tab-item__label">收藏</span>
       </button>
-      <button class="tab-item" data-page="pageEdit">
-        <span class="tab-item__icon">🎨</span>
+      <button type="button" class="tab-item" data-tab="custom">
+        <span class="tab-item__icon">🖌️</span>
         <span class="tab-item__label">自制</span>
       </button>
-      <button class="tab-item" data-page="pageProfile">
-        <span class="tab-item__icon">👤</span>
-        <span class="tab-item__label">我的</span>
+      <button type="button" class="tab-item" data-tab="settings">
+        <span class="tab-item__icon">⚙️</span>
+        <span class="tab-item__label">设置</span>
       </button>
     </nav>
 
-    <!-- FAB 悬浮上传按钮 -->
-    <button type="button" class="fab" id="fabUpload">📷</button>
-
-    <!-- 隐藏的文件输入 -->
     <input type="file" id="fileInput" accept="image/*" hidden />
   </div>
 
