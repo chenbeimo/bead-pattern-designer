@@ -47,11 +47,13 @@ export function initEditor() {
     if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); renderEditor(); }
   });
 
-  // Canvas 绘图事件
-  canvas.addEventListener('mousedown', onPointerDown);
-  canvas.addEventListener('mousemove', onPointerMove);
-  canvas.addEventListener('mouseup', onPointerUp);
-  canvas.addEventListener('mouseleave', onPointerUp);
+  // Canvas 绘图事件 — 使用 Pointer Events 统一鼠标和触摸
+  canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
+  canvas.addEventListener('pointermove', onPointerMove, { passive: false });
+  canvas.addEventListener('pointerup', onPointerUp);
+  canvas.addEventListener('pointerleave', onPointerUp);
+  canvas.addEventListener('pointercancel', onPointerUp);
+  // 兼容不支持 Pointer Events 的旧浏览器
   canvas.addEventListener('touchstart', onTouchStart, { passive: false });
   canvas.addEventListener('touchmove', onTouchMove, { passive: false });
   canvas.addEventListener('touchend', onPointerUp);
@@ -179,10 +181,17 @@ function getCellFromEvent(e) {
   const rect = canvas.getBoundingClientRect();
   if (rect.width === 0 || rect.height === 0) return -1;
 
-  // 支持 touch 和 mouse 事件
-  const clientX = e.clientX ?? e.pageX;
-  const clientY = e.clientY ?? e.pageY;
-  if (clientX == null || clientY == null) return -1;
+  // 支持 pointer/touch/mouse 事件
+  let clientX, clientY;
+  if (e.clientX != null) {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  } else if (e.touches && e.touches.length > 0) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    return -1;
+  }
 
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
@@ -203,7 +212,12 @@ function paintCell(idx) {
 
 function onPointerDown(e) {
   e.preventDefault();
+  e.stopPropagation();
   isDrawing = true;
+  // 捕获指针，确保拖拽时不会丢失事件
+  if (e.pointerId != null && canvas.setPointerCapture) {
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  }
   lastCellIdx = getCellFromEvent(e);
   paintCell(lastCellIdx);
 }
@@ -224,12 +238,18 @@ function onPointerUp() {
 
 function onTouchStart(e) {
   e.preventDefault();
-  onPointerDown(e.touches[0]);
+  e.stopPropagation();
+  if (e.touches.length > 0) {
+    onPointerDown(e.touches[0]);
+  }
 }
 
 function onTouchMove(e) {
   e.preventDefault();
-  onPointerMove(e.touches[0]);
+  e.stopPropagation();
+  if (e.touches.length > 0) {
+    onPointerMove(e.touches[0]);
+  }
 }
 
 function saveCurrentProject() {
