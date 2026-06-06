@@ -1,5 +1,5 @@
 /**
- * 路由：Tab 导航 + 页面切换
+ * 路由：Tab 导航 + 页面切换 + 底部栏模式切换
  */
 import { getState, setState } from '../core/app-state.js';
 
@@ -7,6 +7,9 @@ const TAB_PAGES = { home: 'pageHome', favorites: 'pageFavorites', custom: 'pageC
 const FULL_PAGES = ['pageEditor', 'pageColorPicker'];
 
 let previousTab = 'home';
+
+const barTabs = document.getElementById('barTabs');
+const barEditor = document.getElementById('barEditor');
 
 export function initRouter() {
   const tabItems = document.querySelectorAll('.tab-item');
@@ -45,22 +48,38 @@ export function switchTab(tabName) {
     t.classList.toggle('active', t.dataset.tab === tabName);
   });
 
-  // Tab 栏可见
-  document.querySelector('.tab-bar').classList.remove('hidden');
+  // 切换到 Tab 模式
+  setBarMode('tabs');
 }
 
 export function showFullPage(pageId) {
-  // 隐藏所有 Tab 页
   Object.values(TAB_PAGES).forEach((id) => document.getElementById(id).classList.remove('active'));
   FULL_PAGES.forEach((id) => document.getElementById(id).classList.remove('active'));
+  document.getElementById(pageId).classList.remove('no-tab-pad');
 
   document.getElementById(pageId).classList.add('active');
-  // Tab 栏保留但不高亮任何项
   document.querySelectorAll('.tab-item').forEach((t) => t.classList.remove('active'));
+
+  // 编辑器页用编辑器操作栏，颜色选择器保留 Tab 栏
+  if (pageId === 'pageEditor') {
+    setBarMode('editor');
+  } else {
+    setBarMode('tabs');
+  }
 }
 
 export function goBack() {
+  setBarMode('tabs');
   switchTab(previousTab || 'home');
+}
+
+/**
+ * 切换底部栏模式
+ * @param {'tabs'|'editor'} mode
+ */
+export function setBarMode(mode) {
+  barTabs.classList.toggle('hidden', mode !== 'tabs');
+  barEditor.classList.toggle('hidden', mode !== 'editor');
 }
 
 export function getPreviousTab() { return previousTab; }

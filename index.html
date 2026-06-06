@@ -147,26 +147,6 @@
       <div class="editor-canvas-wrap" id="editorCanvasWrap">
         <canvas id="editorCanvas"></canvas>
       </div>
-      <div class="editor-toolbar">
-        <div class="editor-toolbar__left">
-          <button type="button" class="editor-btn" id="editorUndo" title="撤销">↩️</button>
-          <button type="button" class="editor-btn" id="editorRedo" title="重做">↪️</button>
-          <label class="editor-toggle-wrap">
-            <input type="checkbox" id="editorShowLabels" checked />
-            <span class="editor-toggle-label">编号</span>
-          </label>
-          <label class="editor-toggle-wrap">
-            <input type="checkbox" id="editorShowGrid" checked />
-            <span class="editor-toggle-label">网格</span>
-          </label>
-        </div>
-        <div class="editor-toolbar__right">
-          <button type="button" class="btn-action btn-action--color" id="btnPickColor">🎨 选色</button>
-          <button type="button" class="btn-action btn-action--save" id="btnSaveProject">💾 保存</button>
-          <button type="button" class="btn-action btn-action--export" id="btnExportPng">📥 PNG</button>
-          <button type="button" class="btn-action btn-action--pdf" id="btnExportPdf">📄 PDF</button>
-        </div>
-      </div>
     </div>
 
     <!-- ===== ⑥ 颜色选择器页 ===== -->
@@ -224,24 +204,50 @@
       </div>
     </div>
 
-    <!-- 底部 Tab -->
-    <nav class="tab-bar">
-      <button type="button" class="tab-item active" data-tab="home">
-        <span class="tab-item__icon">🏠</span>
-        <span class="tab-item__label">首页</span>
-      </button>
-      <button type="button" class="tab-item" data-tab="favorites">
-        <span class="tab-item__icon">💙</span>
-        <span class="tab-item__label">收藏</span>
-      </button>
-      <button type="button" class="tab-item" data-tab="custom">
-        <span class="tab-item__icon">🖌️</span>
-        <span class="tab-item__label">自制</span>
-      </button>
-      <button type="button" class="tab-item" data-tab="settings">
-        <span class="tab-item__icon">⚙️</span>
-        <span class="tab-item__label">设置</span>
-      </button>
+    <!-- 底部栏：Tab 模式 + 编辑器操作模式 -->
+    <nav class="bottom-bar" id="bottomBar">
+      <!-- Tab 模式 -->
+      <div class="bottom-bar__tabs" id="barTabs">
+        <button type="button" class="tab-item active" data-tab="home">
+          <span class="tab-item__icon">🏠</span>
+          <span class="tab-item__label">首页</span>
+        </button>
+        <button type="button" class="tab-item" data-tab="favorites">
+          <span class="tab-item__icon">💙</span>
+          <span class="tab-item__label">收藏</span>
+        </button>
+        <button type="button" class="tab-item" data-tab="custom">
+          <span class="tab-item__icon">🖌️</span>
+          <span class="tab-item__label">自制</span>
+        </button>
+        <button type="button" class="tab-item" data-tab="settings">
+          <span class="tab-item__icon">⚙️</span>
+          <span class="tab-item__label">设置</span>
+        </button>
+      </div>
+      <!-- 编辑器操作模式 -->
+      <div class="bottom-bar__editor hidden" id="barEditor">
+        <button type="button" class="editor-bar-btn" id="editorUndo" title="撤销">
+          <span class="editor-bar-btn__icon">↩️</span>
+          <span class="editor-bar-btn__label">撤销</span>
+        </button>
+        <button type="button" class="editor-bar-btn" id="editorRedo" title="重做">
+          <span class="editor-bar-btn__icon">↪️</span>
+          <span class="editor-bar-btn__label">重做</span>
+        </button>
+        <button type="button" class="editor-bar-btn" id="btnPickColor" title="选色">
+          <span class="editor-bar-btn__icon">🎨</span>
+          <span class="editor-bar-btn__label">选色</span>
+        </button>
+        <button type="button" class="editor-bar-btn" id="btnSaveProject" title="保存">
+          <span class="editor-bar-btn__icon">💾</span>
+          <span class="editor-bar-btn__label">保存</span>
+        </button>
+        <button type="button" class="editor-bar-btn editor-bar-btn--done" id="editorDone" title="完成">
+          <span class="editor-bar-btn__icon">✓</span>
+          <span class="editor-bar-btn__label">完成</span>
+        </button>
+      </div>
     </nav>
 
     <input type="file" id="fileInput" accept="image/*" hidden />

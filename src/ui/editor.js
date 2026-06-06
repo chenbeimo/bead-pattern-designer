@@ -3,8 +3,8 @@
  */
 import { getState, setCellColor, undo, redo, setEditorState, setState } from '../core/app-state.js';
 import { getPalette } from '../data/bead-palette.js';
-import { showFullPage, goBack } from './router.js';
-import { saveProject, genId, loadProjects, isFavorite, toggleFavorite } from '../data/projects.js';
+import { showFullPage, goBack, setBarMode } from './router.js';
+import { saveProject, genId } from '../data/projects.js';
 import { showToast } from './toast.js';
 import { exportPng, exportPdf } from './exporter.js';
 
@@ -16,35 +16,23 @@ export function initEditor() {
   canvas = document.getElementById('editorCanvas');
   ctx = canvas.getContext('2d');
 
-  // 返回
+  // 返回（顶部 header）
   document.getElementById('editorBack').addEventListener('click', () => {
     goBack();
   });
 
-  // 撤销/重做
+  // 底部栏按钮
   document.getElementById('editorUndo').addEventListener('click', () => { undo(); renderEditor(); });
   document.getElementById('editorRedo').addEventListener('click', () => { redo(); renderEditor(); });
-
-  // 键盘快捷键
-  document.addEventListener('keydown', (e) => {
-    if (getState().currentTab !== 'editor' && !document.getElementById('pageEditor').classList.contains('active')) return;
-    if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); renderEditor(); }
-    if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); renderEditor(); }
-  });
-
-  // 显示选项
-  document.getElementById('editorShowLabels').addEventListener('change', (e) => {
-    setEditorState({ showLabels: e.target.checked });
-    renderEditor();
-  });
-  document.getElementById('editorShowGrid').addEventListener('change', (e) => {
-    setEditorState({ showGrid: e.target.checked });
-    renderEditor();
-  });
-
-  // 选色按钮
   document.getElementById('btnPickColor').addEventListener('click', () => {
     showFullPage('pageColorPicker');
+  });
+  document.getElementById('btnSaveProject').addEventListener('click', saveCurrentProject);
+
+  // 完成按钮 → 保存并返回
+  document.getElementById('editorDone').addEventListener('click', () => {
+    saveCurrentProject();
+    goBack();
   });
 
   // 顶部颜色显示也可点击进入选色
@@ -52,12 +40,12 @@ export function initEditor() {
     showFullPage('pageColorPicker');
   });
 
-  // 保存
-  document.getElementById('btnSaveProject').addEventListener('click', saveCurrentProject);
-
-  // 导出
-  document.getElementById('btnExportPng').addEventListener('click', () => exportPng());
-  document.getElementById('btnExportPdf').addEventListener('click', () => exportPdf());
+  // 键盘快捷键
+  document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('pageEditor').classList.contains('active')) return;
+    if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); renderEditor(); }
+    if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); renderEditor(); }
+  });
 
   // Canvas 绘图事件
   canvas.addEventListener('mousedown', onPointerDown);
@@ -86,7 +74,6 @@ export function openEditor() {
   const state = getState();
   const { editor } = state;
 
-  // 设置当前颜色默认值
   if (!editor.currentColor) {
     const palette = getPalette(state.brand);
     setEditorState({ currentColor: palette[0].id });
@@ -105,14 +92,13 @@ export function renderEditor() {
   const { editor } = state;
   if (!editor.active) return;
 
-  const { width, height, gridData, cellSize, showLabels, showGrid, currentColor } = editor;
+  const { width, height, gridData, cellSize, showLabels, showGrid } = editor;
   const cw = width * cellSize;
   const ch = height * cellSize;
 
   canvas.width = cw;
   canvas.height = ch;
 
-  // 背景
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, cw, ch);
 
@@ -140,7 +126,6 @@ export function renderEditor() {
           ctx.fillText(c.id, px + cellSize / 2, py + cellSize / 2);
         }
       } else {
-        // 空格子：棋盘格提示
         ctx.fillStyle = (x + y) % 2 === 0 ? '#f8f8f8' : '#f0f0f0';
         ctx.fillRect(px, py, cellSize, cellSize);
       }
@@ -153,7 +138,6 @@ export function renderEditor() {
     }
   }
 
-  // 5格加粗线
   if (showGrid && cellSize >= 6) {
     ctx.strokeStyle = 'rgba(0,0,0,0.3)';
     ctx.lineWidth = 1;
@@ -165,11 +149,7 @@ export function renderEditor() {
     }
   }
 
-  // 当前颜色高亮光标（如果正在绘制）
-  if (currentColor && cellSize >= 10) {
-    // 在顶部显示当前颜色
-    updateEditorHeader();
-  }
+  updateEditorHeader();
 }
 
 function updateEditorHeader() {
@@ -225,30 +205,23 @@ function onPointerUp() {
 
 function onTouchStart(e) {
   e.preventDefault();
-  const touch = e.touches[0];
-  onPointerDown(touch);
+  onPointerDown(e.touches[0]);
 }
 
 function onTouchMove(e) {
   e.preventDefault();
-  const touch = e.touches[0];
-  onPointerMove(touch);
+  onPointerMove(e.touches[0]);
 }
 
-/**
- * 保存当前项目
- */
 function saveCurrentProject() {
   const state = getState();
   const { editor } = state;
 
-  // 生成缩略图
   const thumbCanvas = document.createElement('canvas');
-  const thumbSize = 128;
-  thumbCanvas.width = thumbSize;
-  thumbCanvas.height = thumbSize;
+  thumbCanvas.width = 128;
+  thumbCanvas.height = 128;
   const tCtx = thumbCanvas.getContext('2d');
-  tCtx.drawImage(canvas, 0, 0, thumbSize, thumbSize);
+  tCtx.drawImage(canvas, 0, 0, 128, 128);
   const thumbnail = thumbCanvas.toDataURL('image/jpeg', 0.6);
 
   const project = {
