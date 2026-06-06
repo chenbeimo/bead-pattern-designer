@@ -23,7 +23,7 @@ export function initEditor() {
 
   // 底部栏按钮
   document.getElementById('editorUndo').addEventListener('click', () => { undo(); renderEditor(); });
-  document.getElementById('editorRedo').addEventListener('click', () => { redo(); renderEditor(); });
+  document.getElementById('btnExportPng').addEventListener('click', () => exportPng());
   document.getElementById('btnPickColor').addEventListener('click', () => {
     showFullPage('pageColorPicker');
   });
