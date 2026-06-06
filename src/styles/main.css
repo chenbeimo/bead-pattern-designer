@@ -211,6 +211,8 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
 .btn-action:active { transform: scale(0.97); }
 .btn-action--color { background: var(--primary-gradient); box-shadow: 0 4px 12px rgba(74,144,164,0.3); }
 .btn-action--save { background: var(--accent-green-gradient); box-shadow: 0 4px 12px rgba(123,174,127,0.3); }
+.btn-action--export { background: var(--primary-gradient); box-shadow: 0 4px 12px rgba(74,144,164,0.3); }
+.btn-action--pdf { background: var(--accent-coral-gradient); box-shadow: 0 4px 12px rgba(232,168,124,0.3); }
 .btn-action--full { width: 100%; }
 
 /* ===== Editor ===== */

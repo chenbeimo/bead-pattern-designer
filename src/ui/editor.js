@@ -6,6 +6,7 @@ import { getPalette } from '../data/bead-palette.js';
 import { showFullPage, goBack } from './router.js';
 import { saveProject, genId, loadProjects, isFavorite, toggleFavorite } from '../data/projects.js';
 import { showToast } from './toast.js';
+import { exportPng, exportPdf } from './exporter.js';
 
 let canvas, ctx;
 let isDrawing = false;
@@ -53,6 +54,10 @@ export function initEditor() {
 
   // 保存
   document.getElementById('btnSaveProject').addEventListener('click', saveCurrentProject);
+
+  // 导出
+  document.getElementById('btnExportPng').addEventListener('click', () => exportPng());
+  document.getElementById('btnExportPdf').addEventListener('click', () => exportPdf());
 
   // Canvas 绘图事件
   canvas.addEventListener('mousedown', onPointerDown);
