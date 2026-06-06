@@ -80,6 +80,9 @@ export function openEditor() {
   }
 
   showFullPage('pageEditor');
+  // 刷新 canvas 引用（页面切换后 DOM 可能变化）
+  canvas = document.getElementById('editorCanvas');
+  ctx = canvas ? canvas.getContext('2d') : null;
   updateEditorHeader();
   renderEditor();
 }
@@ -91,6 +94,11 @@ export function renderEditor() {
   const state = getState();
   const { editor } = state;
   if (!editor.active) return;
+
+  // 确保 canvas 引用有效
+  if (!canvas) canvas = document.getElementById('editorCanvas');
+  if (!canvas) return;
+  if (!ctx) ctx = canvas.getContext('2d');
 
   const { width, height, gridData, cellSize, showLabels, showGrid } = editor;
   const cw = width * cellSize;
@@ -164,37 +172,48 @@ function updateEditorHeader() {
 }
 
 function getCellFromEvent(e) {
+  const editor = getState().editor;
+  const { width, height, cellSize } = editor;
+  if (!canvas || canvas.width === 0 || canvas.height === 0) return -1;
+
   const rect = canvas.getBoundingClientRect();
-  const state = getState();
-  const { editor } = state;
+  if (rect.width === 0 || rect.height === 0) return -1;
+
+  // 支持 touch 和 mouse 事件
+  const clientX = e.clientX ?? e.pageX;
+  const clientY = e.clientY ?? e.pageY;
+  if (clientX == null || clientY == null) return -1;
+
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
-  const x = Math.floor(((e.clientX - rect.left) * scaleX) / editor.cellSize);
-  const y = Math.floor(((e.clientY - rect.top) * scaleY) / editor.cellSize);
-  if (x < 0 || x >= editor.width || y < 0 || y >= editor.height) return -1;
-  return y * editor.width + x;
+  const x = Math.floor(((clientX - rect.left) * scaleX) / cellSize);
+  const y = Math.floor(((clientY - rect.top) * scaleY) / cellSize);
+
+  if (x < 0 || x >= width || y < 0 || y >= height) return -1;
+  return y * width + x;
+}
+
+function paintCell(idx) {
+  if (idx < 0) return;
+  const { editor } = getState();
+  if (!editor.currentColor) return;
+  setCellColor(idx, editor.currentColor);
+  renderEditor();
 }
 
 function onPointerDown(e) {
   e.preventDefault();
   isDrawing = true;
-  const idx = getCellFromEvent(e);
-  if (idx >= 0) {
-    const state = getState();
-    setCellColor(idx, state.editor.currentColor);
-    lastCellIdx = idx;
-    renderEditor();
-  }
+  lastCellIdx = getCellFromEvent(e);
+  paintCell(lastCellIdx);
 }
 
 function onPointerMove(e) {
   if (!isDrawing) return;
   const idx = getCellFromEvent(e);
   if (idx >= 0 && idx !== lastCellIdx) {
-    const state = getState();
-    setCellColor(idx, state.editor.currentColor);
     lastCellIdx = idx;
-    renderEditor();
+    paintCell(idx);
   }
 }
 
