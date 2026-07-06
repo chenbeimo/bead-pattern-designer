@@ -2,17 +2,12 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   root: '.',
+  // GitHub Pages 子目录部署 — 路径必须匹配仓库名
+  base: '/bead-pattern-designer/',
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    // 生产环境压缩
     minify: 'terser',
-    rollupOptions: {
-      output: {
-        // 单文件输出，减少请求
-        manualChunks: undefined,
-      },
-    },
   },
   server: {
     port: 3000,
