@@ -1,5 +1,5 @@
 /**
- * 项目存储 — localStorage 持久化
+ * 项目存储 — localStorage 持久化（带 RLE 压缩）
  */
 
 const STORAGE_KEY = 'bead-projects';
@@ -17,24 +17,78 @@ const FAVORITES_KEY = 'bead-favorites';
  * @property {'blank'|'image'} source
  */
 
+// ---- RLE 压缩 ----
+// 将 ["P01","P01","P01","P02",null] 压缩为 "P01:3|P02:1|_:1"
+// 大面积同色的拼豆图案压缩率可达 80%+
+
+function compressGridData(gridData) {
+  if (!gridData || gridData.length === 0) return '';
+  const parts = [];
+  let prev = gridData[0];
+  let count = 1;
+  for (let i = 1; i < gridData.length; i++) {
+    if (gridData[i] === prev) {
+      count++;
+    } else {
+      parts.push(`${prev === null ? '_' : prev}:${count}`);
+      prev = gridData[i];
+      count = 1;
+    }
+  }
+  parts.push(`${prev === null ? '_' : prev}:${count}`);
+  return parts.join('|');
+}
+
+function decompressGridData(str, length) {
+  if (!str) return new Array(length).fill(null);
+  const result = [];
+  const parts = str.split('|');
+  for (const part of parts) {
+    const colonIdx = part.lastIndexOf(':');
+    const val = part.substring(0, colonIdx);
+    const count = parseInt(part.substring(colonIdx + 1), 10);
+    const color = val === '_' ? null : val;
+    for (let i = 0; i < count; i++) result.push(color);
+  }
+  return result;
+}
+
+// 保存时压缩 gridData，加载时自动解压（兼容旧格式）
+function compressProject(project) {
+  return { ...project, gridData: compressGridData(project.gridData), _compressed: true };
+}
+
+function decompressProject(project) {
+  if (project._compressed && typeof project.gridData === 'string') {
+    const len = project.width * project.height;
+    return { ...project, gridData: decompressGridData(project.gridData, len), _compressed: undefined };
+  }
+  return project; // 旧格式，直接返回
+}
+
 export function loadProjects() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    return raw.map(decompressProject);
   } catch { return []; }
 }
 
 export function saveProject(project) {
+  // 先加载并解压所有项目
   const projects = loadProjects();
   const idx = projects.findIndex((p) => p.id === project.id);
   if (idx >= 0) projects[idx] = project;
   else projects.unshift(project);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+  // 保存时全部压缩
+  const compressed = projects.map(compressProject);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(compressed));
   return project;
 }
 
 export function deleteProject(id) {
   const projects = loadProjects().filter((p) => p.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+  const compressed = projects.map(compressProject);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(compressed));
   removeFavorite(id);
 }
 

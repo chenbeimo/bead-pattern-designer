@@ -1,5 +1,6 @@
 /**
  * 导出模块：PNG / PDF
+ * PDF 使用 jsPDF 直接生成，不依赖弹窗
  */
 import { getState } from '../core/app-state.js';
 import { getPalette } from '../data/bead-palette.js';
@@ -10,14 +11,11 @@ export function exportPng() {
   downloadFile(dataUrl, 'bead-pattern.png');
 }
 
-export function exportPdf() {
+export async function exportPdf() {
+  const { jsPDF } = await import('jspdf');
   const state = getState();
   const { editor } = state;
   const canvas = document.getElementById('editorCanvas');
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) { alert('请允许弹窗后重试'); return; }
-
-  const dataUrl = canvas.toDataURL('image/png');
   const palette = getPalette(state.brand);
 
   // 统计用量
@@ -26,19 +24,101 @@ export function exportPdf() {
   const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
   const totalBeads = entries.reduce((s, e) => s + e[1], 0);
 
-  let statsHtml = '';
+  // 创建 PDF（A4 竖版）
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = 210;
+  const margin = 15;
+  const contentW = pageW - margin * 2;
+
+  // 标题
+  pdf.setFontSize(18);
+  pdf.text(`拼豆图纸 — ${editor.width}×${editor.height}`, pageW / 2, margin + 5, { align: 'center' });
+
+  // 图片 — 等比缩放，最大宽度 = contentW
+  const imgData = canvas.toDataURL('image/png');
+  const imgRatio = canvas.width / canvas.height;
+  let imgW = contentW;
+  let imgH = imgW / imgRatio;
+  const maxImgH = 180; // 最大高度 mm
+  if (imgH > maxImgH) {
+    imgH = maxImgH;
+    imgW = imgH * imgRatio;
+  }
+  const imgX = (pageW - imgW) / 2;
+  pdf.addImage(imgData, 'PNG', imgX, margin + 12, imgW, imgH);
+
+  // 用量清单 — 新起一页
   if (entries.length > 0) {
-    const rows = entries.map(([id, count]) => {
+    pdf.addPage();
+    pdf.setFontSize(16);
+    pdf.text('用量清单', margin, margin + 5);
+
+    pdf.setFontSize(10);
+    pdf.text(`总计: ${totalBeads} 颗, ${entries.length} 种颜色`, margin, margin + 13);
+
+    // 表格
+    const rowH = 7;
+    let y = margin + 20;
+    const colWidths = [25, 60, 30]; // 色号、颜色名、数量
+    const headers = ['色号', '颜色', '数量'];
+
+    // 表头
+    pdf.setFontSize(10);
+    pdf.setFont(undefined, 'bold');
+    let x = margin;
+    headers.forEach((h, i) => {
+      pdf.rect(x, y, colWidths[i], rowH);
+      pdf.text(h, x + 2, y + 5);
+      x += colWidths[i];
+    });
+    y += rowH;
+
+    // 数据行
+    pdf.setFont(undefined, 'normal');
+    for (const [id, count] of entries) {
+      // 换页检查
+      if (y + rowH > 297 - margin) {
+        pdf.addPage();
+        y = margin;
+        // 重绘表头
+        pdf.setFont(undefined, 'bold');
+        let hx = margin;
+        headers.forEach((h, i) => {
+          pdf.rect(hx, y, colWidths[i], rowH);
+          pdf.text(h, hx + 2, y + 5);
+          hx += colWidths[i];
+        });
+        y += rowH;
+        pdf.setFont(undefined, 'normal');
+      }
+
       const c = palette.find((p) => p.id === id);
       const name = c ? c.name : id;
-      const hex = c ? `rgb(${c.r},${c.g},${c.b})` : '#ccc';
-      return `<tr><td style="border:1px solid #ccc;padding:6px;">${id}</td><td style="border:1px solid #ccc;padding:6px;"><span style="display:inline-block;width:14px;height:14px;background:${hex};border:1px solid #ccc;vertical-align:middle;margin-right:4px;"></span>${name}</td><td style="border:1px solid #ccc;padding:6px;">${count}</td></tr>`;
-    }).join('');
-    statsHtml = `<div style="margin-top:20px;page-break-before:always;"><h2>用量清单</h2><p>总计: ${totalBeads} 颗, ${entries.length} 种颜色</p><table style="border-collapse:collapse;width:100%;max-width:500px;"><thead><tr><th style="border:1px solid #ccc;padding:6px;text-align:left;">色号</th><th style="border:1px solid #ccc;padding:6px;text-align:left;">颜色</th><th style="border:1px solid #ccc;padding:6px;text-align:left;">数量</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+
+      x = margin;
+      // 色号
+      pdf.rect(x, y, colWidths[0], rowH);
+      pdf.text(id, x + 2, y + 5);
+      x += colWidths[0];
+
+      // 颜色方块 + 名称
+      pdf.rect(x, y, colWidths[1], rowH);
+      if (c) {
+        pdf.setFillColor(c.r, c.g, c.b);
+        pdf.rect(x + 2, y + 1.5, 4, 4, 'F');
+      }
+      pdf.text(name, x + 8, y + 5);
+      x += colWidths[1];
+
+      // 数量
+      pdf.rect(x, y, colWidths[2], rowH);
+      pdf.text(String(count), x + 2, y + 5);
+
+      y += rowH;
+    }
   }
 
-  printWindow.document.write(`<!DOCTYPE html><html><head><title>拼豆图纸</title><style>@page{size:A4;margin:15mm;}body{font-family:sans-serif;text-align:center;}img{max-width:100%;height:auto;}h1{font-size:18px;margin-bottom:10px;}</style></head><body><h1>拼豆图纸 — ${editor.width}×${editor.height}</h1><img src="${dataUrl}" />${statsHtml}<script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script></body></html>`);
-  printWindow.document.close();
+  pdf.save('bead-pattern.pdf');
 }
 
 function downloadFile(dataUrl, filename) {

@@ -2,18 +2,15 @@
  * 项目列表 — 最近作品 / 收藏 / 自制
  */
 import { loadProjects, deleteProject, toggleFavorite, isFavorite, loadFavorites } from '../data/projects.js';
-import { loadProjectToEditor, getState } from '../core/app-state.js';
+import { loadProjectToEditor, subscribe } from '../core/app-state.js';
 import { openEditor } from './editor.js';
-import { showFullPage } from './router.js';
 
 export function initProjects() {
   // 订阅状态刷新列表
-  import('../core/app-state.js').then(({ subscribe }) => {
-    subscribe(() => {
-      renderRecentList();
-      renderCustomList();
-      renderFavoritesList();
-    });
+  subscribe(() => {
+    renderRecentList();
+    renderCustomList();
+    renderFavoritesList();
   });
 
   // 初始渲染

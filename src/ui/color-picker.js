@@ -1,11 +1,11 @@
 /**
  * 颜色选择器页 — 搜索/筛选/分类/勾选
  */
-import { getState, setEditorState } from '../core/app-state.js';
+import { getState, setState } from '../core/app-state.js';
 import { getPalette } from '../data/bead-palette.js';
 import { loadUserPalette, saveUserPalette, isBaseColor, COLOR_GROUPS } from '../data/user-palette.js';
 import { showFullPage, goBack } from './router.js';
-import { renderEditor, openEditor } from './editor.js';
+import { renderEditor } from './editor.js';
 
 let currentGroup = 'all';
 let searchQuery = '';
@@ -41,7 +41,7 @@ export function initColorPicker() {
     const ids = new Set(state.userPalette);
     palette.forEach((c) => ids.add(c.id));
     saveUserPalette(ids, state.brand);
-    import('../core/app-state.js').then(({ setState }) => setState({ userPalette: ids }));
+    setState({ userPalette: ids });
     renderColorGrid();
   });
 
@@ -50,7 +50,7 @@ export function initColorPicker() {
     const baseIds = new Set();
     getPalette(state.brand).forEach((c) => { if (isBaseColor(c.id)) baseIds.add(c.id); });
     saveUserPalette(baseIds, state.brand);
-    import('../core/app-state.js').then(({ setState }) => setState({ userPalette: baseIds }));
+    setState({ userPalette: baseIds });
     renderColorGrid();
   });
 
@@ -59,7 +59,7 @@ export function initColorPicker() {
     const baseIds = new Set();
     getPalette(state.brand).forEach((c) => { if (isBaseColor(c.id)) baseIds.add(c.id); });
     saveUserPalette(baseIds, state.brand);
-    import('../core/app-state.js').then(({ setState }) => setState({ userPalette: baseIds }));
+    setState({ userPalette: baseIds });
     renderColorGrid();
   });
 
@@ -74,7 +74,7 @@ export function openColorPicker() {
   // 确保 userPalette 已加载
   if (state.userPalette.size === 0) {
     const palette = loadUserPalette(state.brand);
-    import('../core/app-state.js').then(({ setState }) => setState({ userPalette: palette }));
+    setState({ userPalette: palette });
   }
   currentGroup = 'all';
   searchQuery = '';
@@ -161,7 +161,7 @@ function renderColorGrid() {
       if (ids.has(color.id)) ids.delete(color.id);
       else ids.add(color.id);
       saveUserPalette(ids, state.brand);
-      import('../core/app-state.js').then(({ setState }) => setState({ userPalette: ids }));
+      setState({ userPalette: ids });
       item.classList.toggle('selected');
     });
 

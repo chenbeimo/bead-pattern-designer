@@ -1,9 +1,9 @@
 /**
  * 像素编辑器 — 点击填色 / 缩放 / 撤销重做
  */
-import { getState, setCellColor, undo, redo, setEditorState, setState } from '../core/app-state.js';
+import { getState, setCellColor, undo, redo, setEditorState, beginBatch, endBatch } from '../core/app-state.js';
 import { getPalette } from '../data/bead-palette.js';
-import { showFullPage, goBack, setBarMode } from './router.js';
+import { showFullPage, goBack } from './router.js';
 import { saveProject, genId } from '../data/projects.js';
 import { showToast } from './toast.js';
 import { exportPng, exportPdf } from './exporter.js';
@@ -23,7 +23,9 @@ export function initEditor() {
 
   // 底部栏按钮
   document.getElementById('editorUndo').addEventListener('click', () => { undo(); renderEditor(); });
+  document.getElementById('editorRedo').addEventListener('click', () => { redo(); renderEditor(); });
   document.getElementById('btnExportPng').addEventListener('click', () => exportPng());
+  document.getElementById('btnExportPdf').addEventListener('click', () => exportPdf());
   document.getElementById('btnPickColor').addEventListener('click', () => {
     showFullPage('pageColorPicker');
   });
@@ -214,6 +216,7 @@ function onPointerDown(e) {
   e.preventDefault();
   e.stopPropagation();
   isDrawing = true;
+  beginBatch(); // 开始批处理 — 整个笔画合并为一个 undo 条目
   // 捕获指针，确保拖拽时不会丢失事件
   if (e.pointerId != null && canvas.setPointerCapture) {
     try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
@@ -232,6 +235,9 @@ function onPointerMove(e) {
 }
 
 function onPointerUp() {
+  if (isDrawing) {
+    endBatch(); // 结束批处理 — 合并本次笔画的所有操作
+  }
   isDrawing = false;
   lastCellIdx = -1;
 }
